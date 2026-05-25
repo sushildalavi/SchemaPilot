@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+
+def route_lock_id(route_path: str) -> int:
+    digest = hashlib.sha256(route_path.encode("utf-8")).hexdigest()
+    return int(digest[:15], 16)
 
 
 async def ensure_endpoint(
