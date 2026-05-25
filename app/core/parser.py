@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 
@@ -19,7 +20,7 @@ def _primitive_type(value: Any) -> str:
 
 def structural_ast(value: Any) -> str:
     if isinstance(value, dict):
-        parts = [f"{k}:{structural_ast(v)}" for k, v in value.items()]
+        parts = [f"{k}:{structural_ast(v)}" for k, v in sorted(value.items(), key=lambda kv: kv[0])]
         return "object{" + ";".join(parts) + "}"
 
     if isinstance(value, list):
@@ -33,3 +34,15 @@ def structural_ast(value: Any) -> str:
         return "array_mixed"
 
     return _primitive_type(value)
+
+
+def structural_string(payload: dict[str, Any]) -> str:
+    if not isinstance(payload, dict):
+        raise TypeError("payload must be a JSON object at the root")
+    parts = [f"{k}:{structural_ast(v)};" for k, v in sorted(payload.items(), key=lambda kv: kv[0])]
+    return "".join(parts)
+
+
+def fingerprint_schema(payload: dict[str, Any]) -> str:
+    structural = structural_string(payload)
+    return hashlib.sha256(structural.encode("utf-8")).hexdigest()
