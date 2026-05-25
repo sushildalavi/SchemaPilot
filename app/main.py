@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.engine import (
     classify_contract_drift,
-    get_active_baseline,
+    get_active_baseline_snapshot,
+    get_runtime_metrics,
     log_drift_violations,
     register_payload_snapshot,
     structural_diff,
@@ -48,35 +49,38 @@ async def track_payload(submission: PayloadSubmission, db: AsyncSession = Depend
         normalized_schema=normalized,
     )
 
-    baseline = await get_active_baseline(db, endpoint_id)
+    baseline_row = await get_active_baseline_snapshot(db, endpoint_id)
+    baseline = baseline_row["normalized_schema"] if baseline_row else None
+    baseline_fingerprint = baseline_row["fingerprint"] if baseline_row else None
     diff_count = 0
     severities: dict[str, int] = {"SAFE": 0, "RISKY": 0, "BREAKING": 0}
 
     if baseline is None and inserted:
-        async with db.begin():
-            await db.execute(
-                text(
-                    """
-                    UPDATE schema_snapshots
-                    SET is_active_baseline = FALSE
-                    WHERE endpoint_id = :endpoint_id::uuid
-                    """
-                ),
-                {"endpoint_id": endpoint_id},
-            )
-            await db.execute(
-                text(
-                    """
-                    UPDATE schema_snapshots
-                    SET is_active_baseline = TRUE
-                    WHERE endpoint_id = :endpoint_id::uuid AND fingerprint = :fingerprint
-                    """
-                ),
-                {"endpoint_id": endpoint_id, "fingerprint": fingerprint},
-            )
+        await db.execute(
+            text(
+                """
+                UPDATE schema_snapshots
+                SET is_active_baseline = FALSE
+                WHERE endpoint_id = CAST(:endpoint_id AS uuid)
+                """
+            ),
+            {"endpoint_id": endpoint_id},
+        )
+        await db.execute(
+            text(
+                """
+                UPDATE schema_snapshots
+                SET is_active_baseline = TRUE
+                WHERE endpoint_id = CAST(:endpoint_id AS uuid) AND fingerprint = :fingerprint
+                """
+            ),
+            {"endpoint_id": endpoint_id, "fingerprint": fingerprint},
+        )
+        await db.commit()
         baseline = normalized
+        baseline_fingerprint = fingerprint
 
-    if baseline is not None:
+    if baseline is not None and baseline_fingerprint != fingerprint:
         diffs = structural_diff(baseline, normalized)
         classify_contract_drift(diffs)
         await log_drift_violations(
@@ -90,6 +94,7 @@ async def track_payload(submission: PayloadSubmission, db: AsyncSession = Depend
             sev = item.get("severity")
             if sev in severities:
                 severities[sev] += 1
+        await db.commit()
 
     return {
         "endpoint_id": endpoint_id,
@@ -99,3 +104,8 @@ async def track_payload(submission: PayloadSubmission, db: AsyncSession = Depend
         "diff_count": diff_count,
         "severities": severities,
     }
+
+
+@app.get("/api/v1/metrics")
+async def fetch_runtime_metrics(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    return await get_runtime_metrics(db)

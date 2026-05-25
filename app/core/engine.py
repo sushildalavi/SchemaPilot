@@ -90,13 +90,13 @@ async def register_snapshot(
         text(
             """
             INSERT INTO schema_snapshots(fingerprint, endpoint_id, normalized_schema)
-            VALUES (:fingerprint, :endpoint_id::uuid, CAST(:normalized_schema AS jsonb))
+            VALUES (:fingerprint, CAST(:endpoint_id AS uuid), CAST(:normalized_schema AS jsonb))
             """
         ),
         {
             "fingerprint": fingerprint,
             "endpoint_id": endpoint_id,
-            "normalized_schema": normalized_schema,
+            "normalized_schema": json.dumps(normalized_schema),
         },
     )
     return True
@@ -138,7 +138,7 @@ async def get_active_baseline(db: AsyncSession, endpoint_id: str) -> dict[str, A
             """
             SELECT normalized_schema
             FROM schema_snapshots
-            WHERE endpoint_id = :endpoint_id::uuid
+            WHERE endpoint_id = CAST(:endpoint_id AS uuid)
               AND is_active_baseline = TRUE
             ORDER BY created_at DESC
             LIMIT 1
@@ -147,6 +147,26 @@ async def get_active_baseline(db: AsyncSession, endpoint_id: str) -> dict[str, A
         {"endpoint_id": endpoint_id},
     )
     return row.scalar_one_or_none()
+
+
+async def get_active_baseline_snapshot(db: AsyncSession, endpoint_id: str) -> dict[str, Any] | None:
+    row = await db.execute(
+        text(
+            """
+            SELECT fingerprint, normalized_schema
+            FROM schema_snapshots
+            WHERE endpoint_id = CAST(:endpoint_id AS uuid)
+              AND is_active_baseline = TRUE
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+        ),
+        {"endpoint_id": endpoint_id},
+    )
+    baseline_row = row.first()
+    if baseline_row is None:
+        return None
+    return {"fingerprint": baseline_row[0], "normalized_schema": baseline_row[1]}
 
 
 def structural_diff(
@@ -178,8 +198,15 @@ def classify_risky_mutations(diffs: list[dict[str, Any]]) -> list[dict[str, Any]
     for item in diffs:
         if item["severity"] is not None:
             continue
-        if item["old"] in primitive_types and item["new"] in primitive_types and item["old"] != item["new"]:
-            item["severity"] = "RISKY"
+        old = item["old"]
+        new = item["new"]
+        if old in primitive_types and new in primitive_types and old != new:
+            if old == "int" and new == "float":
+                item["severity"] = "RISKY"
+            elif old == "float" and new == "int":
+                item["severity"] = "BREAKING"
+            else:
+                item["severity"] = "BREAKING"
     return diffs
 
 
@@ -218,7 +245,7 @@ async def log_drift_violations(
             text(
                 """
                 INSERT INTO contract_drift_violations(endpoint_id, observed_fingerprint, severity, diff_payload)
-                VALUES (:endpoint_id::uuid, :fingerprint, CAST(:severity AS change_severity), CAST(:diff_payload AS jsonb))
+                VALUES (CAST(:endpoint_id AS uuid), :fingerprint, CAST(:severity AS change_severity), CAST(:diff_payload AS jsonb))
                 """
             ),
             {
@@ -228,3 +255,28 @@ async def log_drift_violations(
                 "diff_payload": json.dumps({"path": item["path"], "old": item["old"], "new": item["new"]}),
             },
         )
+
+
+async def get_runtime_metrics(db: AsyncSession) -> dict:
+    ep_res = await db.execute(text("SELECT COUNT(*) FROM api_endpoints;"))
+    ep_count = ep_res.scalar_one()
+
+    ss_res = await db.execute(text("SELECT COUNT(*) FROM schema_snapshots;"))
+    ss_count = ss_res.scalar_one()
+
+    viol_res = await db.execute(
+        text(
+            """
+            SELECT severity, COUNT(*)
+            FROM contract_drift_violations
+            GROUP BY severity;
+            """
+        )
+    )
+    severity_counts = {row[0]: row[1] for row in viol_res.fetchall()}
+
+    return {
+        "endpoint_count": ep_count,
+        "snapshot_count": ss_count,
+        "severity_counts": severity_counts,
+    }

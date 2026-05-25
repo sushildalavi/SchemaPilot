@@ -26,13 +26,16 @@ def payload_variant(i: int) -> dict[str, Any]:
         "user_id": i,
         "meta": {"tags": ["admin", "staff"], "active": True},
         "score": 42,
+        "price": 42.5,
     }
-    phase = i % 4
+    phase = i % 5
     if phase == 1:
         base["optional"] = None
     elif phase == 2:
         base["score"] = 42.5
     elif phase == 3:
+        base["price"] = 42
+    elif phase == 4:
         base.pop("meta")
     return base
 
@@ -92,14 +95,24 @@ async def main() -> None:
     assert snapshot_count >= 1, "expected at least one schema snapshot"
     severity_counts = {sev: count for sev, count in severity_rows}
 
+    async with httpx.AsyncClient(timeout=15) as client:
+        metrics_url = TRACK_URL.rsplit("/track", 1)[0] + "/api/v1/metrics"
+        metrics_res = await client.get(metrics_url)
+        assert metrics_res.status_code == 200, f"metrics endpoint failed: {metrics_res.status_code}"
+        metrics_json = metrics_res.json()
+
     print(
         "metrics:",
         {
             "endpoint_count": endpoint_count,
             "snapshot_count": snapshot_count,
             "severity_counts": severity_counts,
+            "metrics_endpoint": metrics_json,
         },
     )
+    assert severity_counts.get("SAFE", 0) > 0, "expected SAFE drift logs"
+    assert severity_counts.get("RISKY", 0) > 0, "expected RISKY drift logs"
+    assert severity_counts.get("BREAKING", 0) > 0, "expected BREAKING drift logs"
 
 
 if __name__ == "__main__":
