@@ -183,6 +183,27 @@ def classify_risky_mutations(diffs: list[dict[str, Any]]) -> list[dict[str, Any]
     return diffs
 
 
+def classify_breaking_changes(diffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    for item in diffs:
+        if item["severity"] is not None:
+            continue
+        if item["old"] is not None and item["new"] is None:
+            item["severity"] = "BREAKING"
+            continue
+        if isinstance(item["old"], str) and item["old"].startswith("nullable_"):
+            required_old = item["old"].replace("nullable_", "", 1)
+            if item["new"] == required_old:
+                item["severity"] = "BREAKING"
+    return diffs
+
+
+def classify_contract_drift(diffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    classify_safe_changes(diffs)
+    classify_risky_mutations(diffs)
+    classify_breaking_changes(diffs)
+    return diffs
+
+
 async def log_drift_violations(
     db: AsyncSession,
     *,
