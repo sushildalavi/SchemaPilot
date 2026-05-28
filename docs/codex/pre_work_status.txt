@@ -1,0 +1,16 @@
+ M README.md
+ M app/core/engine.py
+ M docker-compose.yml
+ M migrations/001_contract_guard_schema.sql
+ M requirements.txt
+ M tests/simulate_drift.py
+?? Dockerfile.runtime
+?? Makefile
+?? docs/ARCHITECTURE.md
+?? docs/BENCHMARKS.md
+?? docs/OPERATIONS.md
+?? docs/benchmarks/
+?? docs/codex/
+?? migrations/002_runtime_snapshot_endpoint_fingerprint_unique.sql
+?? scripts/apply_runtime_migrations.py
+?? tests/test_runtime_track.py
