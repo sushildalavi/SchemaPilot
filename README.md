@@ -1,4 +1,4 @@
-# SchemaPilot — API Contract Drift Monitor
+# SchemaPilot
 
 SchemaPilot is a contract-observability system for JSON APIs.
 
