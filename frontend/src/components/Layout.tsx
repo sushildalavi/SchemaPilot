@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CommandPalette } from "./CommandPalette";
-import { ScrollProgress } from "./ScrollProgress";
 
 function LiveClock() {
   const [t, setT] = useState(new Date());
@@ -61,8 +60,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {/* Animation 7: scroll progress */}
-      <ScrollProgress />
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
 
       <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
