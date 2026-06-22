@@ -11,9 +11,9 @@ interface Props {
 }
 
 /**
- * MagicUI NumberTicker — spring-animated number that counts up/down.
+ * CountTicker — spring-animated number that counts up/down.
  */
-export function NumberTicker({
+export function CountTicker({
   value,
   direction = "up",
   delay = 0,

@@ -1,5 +1,5 @@
 /**
- * MagicUI AnimatedGradientText — text with spinning conic gradient border.
+ * GradientText — text with spinning conic gradient border.
  * Animation 5: infinite spinning gradient pill
  */
 import { type ReactNode } from "react";
@@ -10,7 +10,7 @@ interface Props {
   className?: string;
 }
 
-export function AnimatedGradientText({ children, className }: Props) {
+export function GradientText({ children, className }: Props) {
   return (
     <div
       className={cn(

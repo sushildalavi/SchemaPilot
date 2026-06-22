@@ -26,20 +26,20 @@ def create_app() -> FastAPI:
     )
 
     from app.api import (
-        routes_changelog,
-        routes_diffs,
-        routes_endpoints,
-        routes_health,
-        routes_monitor,
-        routes_snapshots,
+        changelog,
+        diffs,
+        endpoints,
+        health,
+        monitor,
+        snapshots,
     )
 
-    app.include_router(routes_health.router)
-    app.include_router(routes_endpoints.router)
-    app.include_router(routes_snapshots.router)
-    app.include_router(routes_diffs.router)
-    app.include_router(routes_monitor.router)
-    app.include_router(routes_changelog.router)
+    app.include_router(health.router)
+    app.include_router(endpoints.router)
+    app.include_router(snapshots.router)
+    app.include_router(diffs.router)
+    app.include_router(monitor.router)
+    app.include_router(changelog.router)
 
     log.info("schemapilot started, cors=%s", settings.cors_origins)
     return app

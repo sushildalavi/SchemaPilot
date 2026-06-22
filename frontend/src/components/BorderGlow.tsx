@@ -15,10 +15,10 @@ interface Props {
 }
 
 /**
- * MagicUI BorderBeam — animated light that travels along the border.
+ * BorderGlow — animated light that travels along the border.
  * Parent must have `position: relative` and `overflow: hidden`.
  */
-export function BorderBeam({
+export function BorderGlow({
   className,
   size = 100,
   duration = 8,

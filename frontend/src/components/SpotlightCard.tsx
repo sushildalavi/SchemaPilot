@@ -9,9 +9,9 @@ interface Props {
 }
 
 /**
- * MagicUI MagicCard — card with cursor-following spotlight effect.
+ * SpotlightCard — card with cursor-following spotlight effect.
  */
-export function MagicCard({
+export function SpotlightCard({
   children,
   className,
   gradientSize = 300,

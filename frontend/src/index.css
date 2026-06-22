@@ -99,7 +99,7 @@ body {
 
 /* ─── KEYFRAMES ─────────────────────────────────── */
 
-/* 1. BorderBeam */
+/* 1. BorderGlow */
 @keyframes border-beam         { 0% { offset-distance: 0%; }   100% { offset-distance: 100%; } }
 @keyframes border-beam-reverse { 0% { offset-distance: 100%; } 100% { offset-distance: 0%; } }
 
@@ -110,7 +110,7 @@ body {
   100% { transform: rotate(215deg) translateX(-500px); opacity: 0; }
 }
 
-/* 3. RetroGrid scroll */
+/* 3. GridBackdrop scroll */
 @keyframes retro-grid {
   0%   { transform: translateY(-33.333%); }
   100% { transform: translateY(0); }

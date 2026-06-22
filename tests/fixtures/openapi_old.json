@@ -1,0 +1,16 @@
+{
+  "components": {
+    "schemas": {
+      "Event": {
+        "type": "object",
+        "required": ["service", "endpoint"],
+        "properties": {
+          "service": {"type": "string"},
+          "endpoint": {"type": "string"},
+          "payload": {"type": "object"}
+        }
+      }
+    }
+  }
+}
+

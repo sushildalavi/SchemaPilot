@@ -16,8 +16,8 @@ services:
       timeout: 3s
       retries: 20
 
-  drift-simulator:
-    build: ./drift-simulator
+  simulator:
+    build: ./simulator
     ports:
       - "8001:8001"
     healthcheck:
@@ -46,7 +46,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      drift-simulator:
+      simulator:
         condition: service_started
 
   frontend:

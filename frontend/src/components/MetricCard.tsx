@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
-import { Sparkline } from "./Sparkline";
-import { MagicCard } from "./MagicCard";
+import { MiniChart } from "./MiniChart";
+import { SpotlightCard } from "./SpotlightCard";
 
 interface Props {
   label: string;
@@ -29,12 +29,12 @@ export function MetricCard({ label, value, sub, trend, color = "var(--text-1)", 
   }, [spring]);
 
   return (
-    <MagicCard className="card h-full" gradientColor={`${sparkColor}18`}>
+    <SpotlightCard className="card h-full" gradientColor={`${sparkColor}18`}>
       <div className="p-5 flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <span className="eyebrow">{label}</span>
           {trend && trend.length > 2 && (
-            <Sparkline data={trend} width={56} height={22} color={sparkColor} />
+            <MiniChart data={trend} width={56} height={22} color={sparkColor} />
           )}
         </div>
         <p className="mono" style={{ fontSize: 38, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color }}>
@@ -42,6 +42,6 @@ export function MetricCard({ label, value, sub, trend, color = "var(--text-1)", 
         </p>
         {sub && <p className="caption">{sub}</p>}
       </div>
-    </MagicCard>
+    </SpotlightCard>
   );
 }

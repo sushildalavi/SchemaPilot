@@ -1,5 +1,5 @@
 /**
- * MagicUI NeonGradientCard — card with animated neon gradient border glow.
+ * GlowCard — card with animated neon gradient border glow.
  * Animation 4: rotating neon border gradient + inner glow pulse
  */
 import { type ReactNode, useState } from "react";
@@ -13,7 +13,7 @@ interface Props {
   neonColors?: { firstColor: string; secondColor: string };
 }
 
-export function NeonGradientCard({
+export function GlowCard({
   children,
   className,
   borderSize = 2,

@@ -1,296 +1,63 @@
 # SchemaPilot
 
-SchemaPilot is a contract-observability system for JSON APIs.
+SchemaPilot tracks JSON API contract drift.
 
-It gives you two complementary capabilities in this repo:
+It has two paths:
 
-1. **Scheduled Drift Monitor (main product path)**
-- Polls live endpoints from a registry.
-- Infers response schemas from observed payloads.
-- Computes deterministic schema hashes.
-- Diffs schema evolution and classifies severity.
-- Powers a React dashboard for operations and triage.
+1. Scheduled drift monitoring for live endpoints.
+2. Runtime contract guarding for payload samples submitted by middleware.
 
-2. **Runtime Contract Guard (new precision path)**
-- Accepts middleware-submitted payload samples in real time.
-- Normalizes payload structure into deterministic AST-like fingerprints.
-- Uses PostgreSQL advisory locks for safe concurrent writes.
-- Records SAFE / RISKY / BREAKING violations at runtime.
+## What it does
 
----
-
-## Why SchemaPilot
-
-In distributed systems, services evolve independently and break consumers silently.
-SchemaPilot detects response-contract drift from **live traffic behavior**, not static docs.
-
-Key properties:
-- Deterministic drift classification (not LLM-decided)
-- Field-level schema diffing
-- Concurrency-safe ingestion (advisory lock path)
-- Snapshot history + UI for forensic analysis
-
----
+- Infers schemas from observed payloads
+- Computes deterministic schema hashes
+- Diffs schema changes and classifies severity
+- Persists snapshots and violations
+- Powers a dashboard for triage and history
 
 ## Architecture
 
 ```mermaid
 flowchart LR
   subgraph Sources
-    E1[Public APIs]
-    E2[Internal APIs]
-    E3[Drift Simulator]
+    A[Public APIs]
+    B[Internal APIs]
+    C[Drift simulator]
   end
 
-  subgraph Backend[FastAPI Backend]
-    M1[Scheduled Monitor Worker]
-    M2[Schema Infer + Hash + Diff]
-    M3[Severity Classifier]
-    M4[Changelog Generator]
-    M5[Runtime Contract Guard /track]
+  subgraph Backend
+    M1[Monitor worker]
+    M2[Schema inference]
+    M3[Severity classifier]
+    M4[Runtime guard]
   end
 
   DB[(PostgreSQL)]
-  FE[React Dashboard]
+  FE[React dashboard]
 
-  E1 --> M1
-  E2 --> M1
-  E3 --> M1
-
+  A --> M1
+  B --> M1
+  C --> M1
   M1 --> M2 --> M3 --> DB
   M4 --> DB
-  M5 --> DB
-
-  FE -->|REST| Backend
+  FE --> Backend
 ```
 
----
-
-## Drift Decision Flow
-
-```mermaid
-flowchart TD
-  A[Normalized old schema] --> C[Schema diff]
-  B[Normalized new schema] --> C
-
-  C --> D{Field missing?}
-  D -- Yes --> D1[BREAKING]
-  D -- No --> E{New field only?}
-  E -- Yes --> E1[SAFE]
-  E -- No --> F{Primitive changed?}
-
-  F -- int -> float --> F1[RISKY]
-  F -- float -> int --> F2[BREAKING]
-  F -- other type change --> F3[BREAKING]
-
-  C --> G{Nullability/type/array shape changed?}
-  G --> H[Classify + persist violation]
-```
-
----
-
-## Data Model (High Level)
-
-```mermaid
-erDiagram
-  api_endpoints ||--o{ schema_snapshots : has
-  api_endpoints ||--o{ schema_diffs : has
-  api_endpoints ||--o{ contract_drift_violations : has
-
-  monitor_runs ||--o{ schema_snapshots : produces
-  schema_snapshots ||--o{ schema_diffs : compared_in
-
-  api_endpoints {
-    UUID id PK
-    TEXT name
-    TEXT provider
-    TEXT url
-    TEXT method
-  }
-
-  schema_snapshots {
-    UUID id PK
-    UUID endpoint_id FK
-    TEXT schema_hash
-    JSONB normalized_schema_json
-    TIMESTAMPTZ created_at
-  }
-
-  schema_diffs {
-    UUID id PK
-    UUID endpoint_id FK
-    TEXT severity
-    TEXT change_type
-    TEXT path
-    TIMESTAMPTZ created_at
-  }
-
-  contract_drift_violations {
-    UUID id PK
-    UUID endpoint_id FK
-    VARCHAR observed_fingerprint
-    ENUM severity
-    JSONB diff_payload
-    TIMESTAMPTZ detected_at
-  }
-```
-
----
-
-## Repository Layout
-
-- `backend/` — primary FastAPI monitor product, models, worker, API routes, tests
-- `frontend/` — React dashboard and visual components
-- `config/apis.yaml` — endpoint registry for scheduled monitor
-- `drift-simulator/` — changing API payload source for local drift demos
-- `app/` — runtime contract-guard module (`/track`, metrics, parser/engine)
-- `migrations/00*_contract_guard*.sql` — runtime guard SQL migrations
-- `tests/simulate_drift.py` — 5000-request concurrency simulation harness
-
----
-
-## Local Run (Main Product Path)
-
-### Prerequisites
-- Docker / Docker Compose
-
-### Start stack
+## Local run
 
 ```bash
 docker compose up -d --build
-```
-
-### Trigger monitor manually
-
-```bash
 curl -X POST http://localhost:8080/api/monitor/run-once \
   -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
 ```
 
-### Open UI
+## Runtime guard
 
-- Dashboard: `http://localhost:5174`
-- API docs: `http://localhost:8080/docs`
+The runtime guard exposes a `POST /track` endpoint for live payload samples and a metrics endpoint for counts.
 
-### Ports
-- Frontend: `5174`
-- Backend: `8080`
-- Drift simulator: `8001`
+## Portfolio Proof
 
----
-
-## Runtime Contract Guard Path
-
-The runtime guard module lives under `app/` and exposes:
-
-- `POST /track` — submit live payload sample for schema-fingerprint + drift evaluation
-- `GET /api/v1/metrics` — runtime counts (`endpoint_count`, `snapshot_count`, `severity_counts`)
-
-Run via Docker Compose:
-
-```bash
-docker compose up -d postgres runtime-guard
-```
-
-Runtime endpoint:
-
-- `http://localhost:8018/track`
-
-Run it directly:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt asyncpg httpx uvicorn greenlet
-
-# Requires postgres reachable by DATABASE_URL
-DATABASE_URL='postgresql+asyncpg://schemapilot:dev@localhost:55433/schemapilot_runtime' \
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8018
-```
-
-Sample request:
-
-```bash
-curl -X POST http://127.0.0.1:8018/track \
-  -H 'content-type: application/json' \
-  -d '{
-    "service_name": "orders",
-    "http_method": "POST",
-    "route_path": "/v1/orders",
-    "payload": {"order_id": 101, "price": 42.5, "items": [{"sku": "abc"}]}
-  }'
-```
-
-Metrics endpoint:
-
-```bash
-curl http://127.0.0.1:8018/api/v1/metrics
-```
-
----
-
-## Severity Semantics
-
-- `SAFE`: additive fields / non-breaking extensions
-- `RISKY`: widening changes (example: `int -> float`)
-- `BREAKING`: removals, narrowing changes (example: `float -> int`), incompatible type mutations
-
----
-
-## Concurrency and Locking
-
-Runtime registration uses a deterministic route hash and transactional advisory lock:
-
-- lock id = hash(route_path)
-- `SELECT pg_advisory_xact_lock(:lock_id)`
-- serialized endpoint/snapshot insertion under high parallel ingestion
-
-This prevents duplicate endpoint races and write collisions during concurrent submissions.
-
-Runtime snapshot uniqueness is endpoint-scoped:
-
-- `UNIQUE(endpoint_id, fingerprint)` in runtime schema migrations.
-
----
-
-## Testing and Validation
-
-### Existing backend tests
-
-```bash
-cd backend
-pytest -q
-```
-
-### Runtime stress harness
-
-```bash
-make simulate
-```
-
-The harness validates:
-- request success under concurrency
-- endpoint/snapshot persistence
-- non-empty `SAFE`, `RISKY`, `BREAKING` counters
-- `/api/v1/metrics` consistency
-- duplicate active-baseline count (`duplicate_baselines`)
-
-Output artifact:
-
-- `docs/benchmarks/schema_pilot_simulation_5000.json`
-
----
-
-## Deployment Notes
-
-- See [DEPLOY.md](DEPLOY.md) for deployment details.
-- Main product architecture in this repo targets Cloud Run + Vercel + Postgres-style deployment.
-- Runtime guard module can be deployed as a separate service if you want middleware ingestion decoupled from scheduled monitoring.
-
----
-
-## Current Status
-
-- Main monitor + dashboard pipeline: implemented
-- Runtime contract guard + advisory lock ingestion: implemented
-- End-to-end 5000-request simulation: passing in isolated validation setup
+- Architecture and evaluation: [docs/PORTFOLIO_PROOF.md](/Users/sushildalavi/Desktop/Github/SchemaPilot/docs/PORTFOLIO_PROOF.md)
+- Demo and local mode: use the Docker Compose command above
+- Test commands: `pytest`, `npm run build`, `docker compose config`
+- Evidence: benchmark and regression docs under `docs/`

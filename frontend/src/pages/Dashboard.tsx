@@ -1,27 +1,27 @@
 /**
  * Dashboard — all 30 animations live here.
- * 14: hero BlurFade, 15: BorderBeam, 16: Meteors, 17: RetroGrid,
- * 18: AnimatedGradientText, 19: NumberTicker×4, 20: NeonGradientCard,
- * 21: Sparkline draw, 22: severity bar grow, 23: endpoint list x-slide,
- * 24: activity AnimatedList, 25: chart area draw, 26: run stagger,
- * 27: diffs fade, 28: MagicCard spotlight×all, 29: status badge spring,
+ * 14: hero FadeIn, 15: BorderGlow, 16: Starfield, 17: GridBackdrop,
+ * 18: GradientText, 19: CountTicker×4, 20: GlowCard,
+ * 21: MiniChart draw, 22: severity bar grow, 23: endpoint list x-slide,
+ * 24: activity StaggeredList, 25: chart area draw, 26: run stagger,
+ * 27: diffs fade, 28: SpotlightCard spotlight×all, 29: status badge spring,
  * 30: health ring draw
  */
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { api, QUERY_KEYS } from "../api/client";
-import { BlurFade } from "../components/BlurFade";
-import { BorderBeam } from "../components/BorderBeam";
-import { MagicCard } from "../components/MagicCard";
-import { Meteors } from "../components/Meteors";
-import { RetroGrid } from "../components/RetroGrid";
-import { NeonGradientCard } from "../components/NeonGradientCard";
-import { AnimatedGradientText } from "../components/AnimatedGradientText";
-import { AnimatedList } from "../components/AnimatedList";
-import { NumberTicker } from "../components/NumberTicker";
+import { FadeIn } from "../components/FadeIn";
+import { BorderGlow } from "../components/BorderGlow";
+import { SpotlightCard } from "../components/SpotlightCard";
+import { Starfield } from "../components/Starfield";
+import { GridBackdrop } from "../components/GridBackdrop";
+import { GlowCard } from "../components/GlowCard";
+import { GradientText } from "../components/GradientText";
+import { StaggeredList } from "../components/StaggeredList";
+import { CountTicker } from "../components/CountTicker";
 import { DriftChart } from "../components/DriftChart";
-import { Sparkline } from "../components/Sparkline";
+import { MiniChart } from "../components/MiniChart";
 import type { Diff, Endpoint, MonitorRun } from "../types";
 
 const STATUS: Record<MonitorRun["status"], { color: string; dot: string; label: string }> = {
@@ -74,7 +74,7 @@ function HealthRing({ score, color }: { score: number; color: string }) {
   );
 }
 
-/* Activity item component for AnimatedList */
+/* Activity item component for StaggeredList */
 function ActivityItem({ diff, ep }: { diff: Diff; ep?: Endpoint }) {
   const cfg = CHANGE_COLOR[diff.change_type] ?? "var(--text-2)";
   const iconChar = diff.change_type.startsWith("removed") || diff.change_type === "nested_object_removed" ? "−"
@@ -132,26 +132,26 @@ export function Dashboard() {
 
       {/* ── HERO ── Animation 14-18 ─────────────── */}
       <motion.div variants={P.item}>
-        <BlurFade delay={0.05}>
+        <FadeIn delay={0.05}>
           <div
             className="relative overflow-hidden rounded-2xl"
             style={{ background: "var(--surface)", border: "1px solid var(--border-2)", padding: "36px 36px 30px", minHeight: 180 }}
           >
-            {/* Animation 17: RetroGrid */}
-            <RetroGrid angle={55} className="opacity-40" />
-            {/* Animation 16: Meteors */}
-            <Meteors number={8} />
-            {/* Animation 15: BorderBeam */}
-            <BorderBeam size={300} duration={10} colorFrom="#6366f1" colorTo="#a855f7" borderWidth={1} />
+            {/* Animation 17: GridBackdrop */}
+            <GridBackdrop angle={55} className="opacity-40" />
+            {/* Animation 16: Starfield */}
+            <Starfield number={8} />
+            {/* Animation 15: BorderGlow */}
+            <BorderGlow size={300} duration={10} colorFrom="#6366f1" colorTo="#a855f7" borderWidth={1} />
 
             <div className="relative z-10 flex items-start justify-between gap-8 flex-wrap">
               <div>
-                {/* Animation 18: AnimatedGradientText badge */}
+                {/* Animation 18: GradientText badge */}
                 <div className="mb-3">
-                  <AnimatedGradientText>
+                  <GradientText>
                     <span>⚡</span>
                     <span>Schema drift detection — powered by deterministic rules</span>
-                  </AnimatedGradientText>
+                  </GradientText>
                 </div>
                 <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.035em", color: "var(--text-1)", lineHeight: 1.15, marginBottom: 10 }}>
                   API Contract Monitor
@@ -198,7 +198,7 @@ export function Dashboard() {
               </div>
             </div>
           </div>
-        </BlurFade>
+        </FadeIn>
       </motion.div>
 
       {/* ── METRIC CARDS ── Animation 19-21 ─────── */}
@@ -211,29 +211,29 @@ export function Dashboard() {
               { label: "Risky",        value: risky,            sub: "Requires review", spark: [0,0,1,1,2,1], color: risky > 0 ? "#fcd34d" : "var(--text-4)", sc: "#f59e0b" },
               { label: "Safe Changes", value: safe,             sub: "Non-breaking",    spark: [1,2,1,3,2,4], color: safe > 0 ? "#86efac" : "var(--text-4)", sc: "#22c55e" },
             ] as { label: string; value: number; sub: string; spark: number[]; color: string; sc: string }[]).map((m, i) => (
-              <BlurFade key={m.label} delay={0.08 + i * 0.06}>
-                {/* Animation 20: NeonGradientCard */}
-                <NeonGradientCard
+              <FadeIn key={m.label} delay={0.08 + i * 0.06}>
+                {/* Animation 20: GlowCard */}
+                <GlowCard
                   neonColors={{ firstColor: m.sc, secondColor: m.sc === "#6366f1" ? "#8b5cf6" : m.sc }}
                   borderSize={1.5}
                 >
-                  {/* Animation 28: MagicCard spotlight */}
-                  <MagicCard className="rounded-2xl" gradientColor={`${m.sc}18`} gradientSize={220}>
+                  {/* Animation 28: SpotlightCard spotlight */}
+                  <SpotlightCard className="rounded-2xl" gradientColor={`${m.sc}18`} gradientSize={220}>
                     <div className="p-5 h-full" style={{ background: "var(--surface)", borderRadius: 14 }}>
                       <div className="flex items-center justify-between mb-3">
                         <span className="eyebrow">{m.label}</span>
                         {/* Animation 21: sparkline path draw */}
-                        {m.spark.length > 2 && <Sparkline data={m.spark} width={60} height={24} color={m.sc} />}
+                        {m.spark.length > 2 && <MiniChart data={m.spark} width={60} height={24} color={m.sc} />}
                       </div>
-                      {/* Animation 19: NumberTicker */}
+                      {/* Animation 19: CountTicker */}
                       <p className="mono" style={{ fontSize: 42, fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 1, color: m.color }}>
-                        <NumberTicker value={m.value} />
+                        <CountTicker value={m.value} />
                       </p>
                       <p style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>{m.sub}</p>
                     </div>
-                  </MagicCard>
-                </NeonGradientCard>
-              </BlurFade>
+                  </SpotlightCard>
+                </GlowCard>
+              </FadeIn>
             ))
         }
       </motion.div>
@@ -241,8 +241,8 @@ export function Dashboard() {
       {/* ── SEVERITY BAR ── Animation 22 ─────────── */}
       {(breaking + risky + safe) > 0 && (
         <motion.div variants={P.item}>
-          <BlurFade delay={0.2}>
-            <MagicCard className="card" gradientColor="rgba(99,102,241,0.06)">
+          <FadeIn delay={0.2}>
+            <SpotlightCard className="card" gradientColor="rgba(99,102,241,0.06)">
               <div className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="eyebrow">Severity Breakdown</span>
@@ -271,8 +271,8 @@ export function Dashboard() {
                     ))}
                 </div>
               </div>
-            </MagicCard>
-          </BlurFade>
+            </SpotlightCard>
+          </FadeIn>
         </motion.div>
       )}
 
@@ -302,7 +302,7 @@ export function Dashboard() {
               const ringColor  = epBreaking > 0 ? "#ef4444" : epRisky > 0 ? "#f59e0b" : "#22c55e";
 
               return (
-                <BlurFade key={ep.id} delay={0.05 * i}>
+                <FadeIn key={ep.id} delay={0.05 * i}>
                   <Link to={`/endpoints/${ep.id}`}>
                     {/* Animation 23: x-slide entry */}
                     <motion.div
@@ -310,7 +310,7 @@ export function Dashboard() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.06, type: "spring", stiffness: 250, damping: 24 }}
                     >
-                      <MagicCard
+                      <SpotlightCard
                         className="card"
                         gradientColor={epBreaking > 0 ? "rgba(239,68,68,0.07)" : "rgba(99,102,241,0.06)"}
                       >
@@ -339,22 +339,22 @@ export function Dashboard() {
                             </svg>
                           </div>
                         </div>
-                      </MagicCard>
+                      </SpotlightCard>
                     </motion.div>
                   </Link>
-                </BlurFade>
+                </FadeIn>
               );
             })
           )}
         </motion.div>
 
-        {/* Activity — Animation 24: AnimatedList */}
+        {/* Activity — Animation 24: StaggeredList */}
         <motion.div variants={P.item} className="xl:col-span-2">
           <div className="flex items-center justify-between mb-3">
             <span className="eyebrow">Live Activity</span>
             <Link to="/diffs" style={{ fontSize: 11, color: "var(--indigo-l)", textDecoration: "none" }}>View all →</Link>
           </div>
-          <MagicCard className="card" gradientColor="rgba(99,102,241,0.05)">
+          <SpotlightCard className="card" gradientColor="rgba(99,102,241,0.05)">
             <div className="p-3">
               {allDiffs.length === 0 ? (
                 <div className="flex flex-col items-center py-10 gap-2">
@@ -364,23 +364,23 @@ export function Dashboard() {
                   <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-2)" }}>All clear</p>
                 </div>
               ) : (
-                /* Animation 24: AnimatedList sequential slide-in */
-                <AnimatedList delay={600} className="gap-2">
+                /* Animation 24: StaggeredList sequential slide-in */
+                <StaggeredList delay={600} className="gap-2">
                   {allDiffs.slice(0, 8).map(d => (
                     <ActivityItem key={d.id} diff={d} ep={epMap[d.endpoint_id]} />
                   ))}
-                </AnimatedList>
+                </StaggeredList>
               )}
             </div>
-          </MagicCard>
+          </SpotlightCard>
         </motion.div>
       </div>
 
       {/* ── CHART + RUNS ── Animation 25-26 ─────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <motion.div variants={P.item} className="xl:col-span-2">
-          <BlurFade delay={0.25}>
-            <MagicCard className="card" gradientColor="rgba(99,102,241,0.04)">
+          <FadeIn delay={0.25}>
+            <SpotlightCard className="card" gradientColor="rgba(99,102,241,0.04)">
               <div className="p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -399,16 +399,16 @@ export function Dashboard() {
                 {/* Animation 25: chart area draw */}
                 {runsLoad ? <div className="skel h-44" /> : <DriftChart runs={runs} />}
               </div>
-            </MagicCard>
-          </BlurFade>
+            </SpotlightCard>
+          </FadeIn>
         </motion.div>
 
         <motion.div variants={P.item}>
-          <BlurFade delay={0.3}>
+          <FadeIn delay={0.3}>
             <div className="flex items-center justify-between mb-3">
               <span className="eyebrow">Monitor Runs</span>
             </div>
-            <MagicCard className="card" gradientColor="rgba(99,102,241,0.04)">
+            <SpotlightCard className="card" gradientColor="rgba(99,102,241,0.04)">
               {runsLoad ? (
                 <div className="p-4 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="skel h-10 rounded-lg" />)}</div>
               ) : runs.length === 0 ? (
@@ -448,14 +448,14 @@ export function Dashboard() {
                   })}
                 </div>
               )}
-            </MagicCard>
-          </BlurFade>
+            </SpotlightCard>
+          </FadeIn>
         </motion.div>
       </div>
 
       {/* ── RECENT DIFFS TABLE ── Animation 27 ──── */}
       <motion.div variants={P.item}>
-        <BlurFade delay={0.3}>
+        <FadeIn delay={0.3}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <span className="eyebrow">Recent Diffs</span>
@@ -476,7 +476,7 @@ export function Dashboard() {
             </Link>
           </div>
 
-          <MagicCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.03)">
+          <SpotlightCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.03)">
             {allDiffs.length === 0 ? (
               <div className="flex flex-col items-center py-12 gap-3">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)" }}>
@@ -523,8 +523,8 @@ export function Dashboard() {
                 })}
               </>
             )}
-          </MagicCard>
-        </BlurFade>
+          </SpotlightCard>
+        </FadeIn>
       </motion.div>
     </motion.div>
   );

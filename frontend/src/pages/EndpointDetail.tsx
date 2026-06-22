@@ -3,10 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, QUERY_KEYS } from "../api/client";
-import { MagicCard } from "../components/MagicCard";
-import { BorderBeam } from "../components/BorderBeam";
-import { NumberTicker } from "../components/NumberTicker";
-import { Sparkline } from "../components/Sparkline";
+import { SpotlightCard } from "../components/SpotlightCard";
+import { BorderGlow } from "../components/BorderGlow";
+import { CountTicker } from "../components/CountTicker";
+import { MiniChart } from "../components/MiniChart";
 import { DiffTable } from "../components/DiffTable";
 import { SchemaTimeline } from "../components/SchemaTimeline";
 import { ChangelogPanel } from "../components/ChangelogPanel";
@@ -82,7 +82,7 @@ export function EndpointDetail() {
       {/* Hero */}
       <div className="card relative overflow-hidden">
         <div className="h-[3px]" style={{ background: "linear-gradient(to right, #6366f1, #8b5cf6, #a855f7, transparent)" }} />
-        <BorderBeam size={300} duration={12} colorFrom="#6366f1" colorTo="#a855f7" borderWidth={1} />
+        <BorderGlow size={300} duration={12} colorFrom="#6366f1" colorTo="#a855f7" borderWidth={1} />
 
         <div className="p-6">
           <div className="flex items-start justify-between gap-6 flex-wrap">
@@ -113,7 +113,7 @@ export function EndpointDetail() {
             {rts.length > 2 && (
               <div className="text-right flex-shrink-0">
                 <p className="eyebrow mb-2">Response Time</p>
-                <Sparkline data={rts} width={120} height={38} color={avgMs > 1000 ? "#f59e0b" : "#22c55e"} />
+                <MiniChart data={rts} width={120} height={38} color={avgMs > 1000 ? "#f59e0b" : "#22c55e"} />
                 <p className="mono caption mt-1" style={{ color: avgMs > 1000 ? "#fcd34d" : "#86efac" }}>{avgMs}ms avg</p>
               </div>
             )}
@@ -132,7 +132,7 @@ export function EndpointDetail() {
               <div key={label}>
                 <p className="eyebrow mb-1">{label}</p>
                 <p className="mono" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", color }}>
-                  <NumberTicker value={val} />
+                  <CountTicker value={val} />
                 </p>
               </div>
             ))}
@@ -165,10 +165,10 @@ export function EndpointDetail() {
       {/* Content */}
       <AnimatePresence mode="wait">
         <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-          {tab === "diffs"    && <MagicCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.04)"><DiffTable diffs={diffs} /></MagicCard>}
-          {tab === "timeline" && <MagicCard className="card p-6" gradientColor="rgba(99,102,241,0.04)"><SchemaTimeline snapshots={snapshots} diffSnapshotIds={diffSnapIds} /></MagicCard>}
+          {tab === "diffs"    && <SpotlightCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.04)"><DiffTable diffs={diffs} /></SpotlightCard>}
+          {tab === "timeline" && <SpotlightCard className="card p-6" gradientColor="rgba(99,102,241,0.04)"><SchemaTimeline snapshots={snapshots} diffSnapshotIds={diffSnapIds} /></SpotlightCard>}
           {tab === "schema"   && (
-            <MagicCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.04)">
+            <SpotlightCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.04)">
               {fields.length === 0 ? <p className="body p-8 text-center">No schema data yet</p> : (
                 <>
                   <div className="grid grid-cols-[1fr_80px_60px_60px_150px_160px] gap-3 px-5 py-2.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -197,9 +197,9 @@ export function EndpointDetail() {
                   ))}
                 </>
               )}
-            </MagicCard>
+            </SpotlightCard>
           )}
-          {tab === "changelog" && <MagicCard className="card p-6" gradientColor="rgba(99,102,241,0.04)"><ChangelogPanel endpointId={id!} latestSnapshot={latestSnap} /></MagicCard>}
+          {tab === "changelog" && <SpotlightCard className="card p-6" gradientColor="rgba(99,102,241,0.04)"><ChangelogPanel endpointId={id!} latestSnapshot={latestSnap} /></SpotlightCard>}
         </motion.div>
       </AnimatePresence>
     </motion.div>

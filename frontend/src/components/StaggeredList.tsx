@@ -1,5 +1,5 @@
 /**
- * MagicUI AnimatedList — items animate in one-by-one with spring physics.
+ * StaggeredList — items animate in one-by-one with spring physics.
  * Animation 1: sequential spring slide-in
  */
 import React, {
@@ -11,17 +11,17 @@ import React, {
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../lib/utils";
 
-interface AnimatedListProps {
+interface StaggeredListProps {
   className?: string;
   children: ReactNode;
   delay?: number;
 }
 
-export function AnimatedList({
+export function StaggeredList({
   className,
   children,
   delay = 800,
-}: AnimatedListProps) {
+}: StaggeredListProps) {
   const [index, setIndex] = useState(0);
   const childrenArray = useMemo(
     () => React.Children.toArray(children),
@@ -44,16 +44,16 @@ export function AnimatedList({
     <div className={cn("flex flex-col items-center gap-2", className)}>
       <AnimatePresence>
         {itemsToShow.map((item) => (
-          <AnimatedListItem key={(item as React.ReactElement).key}>
+          <StaggeredListItem key={(item as React.ReactElement).key}>
             {item}
-          </AnimatedListItem>
+          </StaggeredListItem>
         ))}
       </AnimatePresence>
     </div>
   );
 }
 
-function AnimatedListItem({ children }: { children: ReactNode }) {
+function StaggeredListItem({ children }: { children: ReactNode }) {
   const animations = {
     initial: { scale: 0.92, opacity: 0, y: 12 },
     animate: { scale: 1, opacity: 1, y: 0 },

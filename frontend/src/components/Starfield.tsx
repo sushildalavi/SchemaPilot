@@ -6,10 +6,10 @@ interface Props {
 }
 
 /**
- * MagicUI Meteors — animated meteor shower particles.
+ * Starfield — animated meteor shower particles.
  * Parent must have `position: relative` and `overflow: hidden`.
  */
-export function Meteors({ number = 12, className }: Props) {
+export function Starfield({ number = 12, className }: Props) {
   const meteors = Array.from({ length: number });
   return (
     <>

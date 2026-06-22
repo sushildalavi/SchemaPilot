@@ -23,7 +23,7 @@ apis:
 
   - name: Drift Simulator
     provider: local
-    url: http://drift-simulator:8001/payload
+    url: http://simulator:8001/payload
     method: GET
     headers: {}
     is_active: true

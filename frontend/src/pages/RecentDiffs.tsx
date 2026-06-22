@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, QUERY_KEYS } from "../api/client";
-import { MagicCard } from "../components/MagicCard";
-import { BorderBeam } from "../components/BorderBeam";
-import { NumberTicker } from "../components/NumberTicker";
+import { SpotlightCard } from "../components/SpotlightCard";
+import { BorderGlow } from "../components/BorderGlow";
+import { CountTicker } from "../components/CountTicker";
 import type { Severity } from "../types";
 
 function timeAgo(dt: string) {
@@ -83,7 +83,7 @@ export function RecentDiffs() {
       <div className="grid grid-cols-3 gap-4">
         {STAT_CARDS.map(([label, key, color, glow]) => (
           <motion.div key={key} whileHover={{ y: -2, scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <MagicCard className="card overflow-hidden cursor-pointer" gradientColor={glow} gradientSize={220}>
+            <SpotlightCard className="card overflow-hidden cursor-pointer" gradientColor={glow} gradientSize={220}>
               <button
                 onClick={() => setSeverity(severity === key ? "all" : key as Severity)}
                 className="w-full text-left"
@@ -91,12 +91,12 @@ export function RecentDiffs() {
               >
                 <p className="eyebrow mb-2">{label}</p>
                 <p className="mono" style={{ fontSize: 44, fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 1, color: (counts[key] ?? 0) > 0 ? color : "var(--text-4)" }}>
-                  <NumberTicker value={counts[key] ?? 0} />
+                  <CountTicker value={counts[key] ?? 0} />
                 </p>
                 <p className="caption mt-2">{(counts[key] ?? 0) > 0 ? "diffs detected" : "all clear"}</p>
               </button>
-              {severity === key && <BorderBeam size={80} duration={5} colorFrom={color} colorTo="transparent" borderWidth={1} />}
-            </MagicCard>
+              {severity === key && <BorderGlow size={80} duration={5} colorFrom={color} colorTo="transparent" borderWidth={1} />}
+            </SpotlightCard>
           </motion.div>
         ))}
       </div>
@@ -160,7 +160,7 @@ export function RecentDiffs() {
       </div>
 
       {/* Table */}
-      <MagicCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.04)">
+      <SpotlightCard className="card overflow-hidden" gradientColor="rgba(99,102,241,0.04)">
         {isLoading ? (
           <div className="p-5 space-y-2">
             {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skel h-10 rounded-lg" />)}
@@ -231,7 +231,7 @@ export function RecentDiffs() {
             </AnimatePresence>
           </>
         )}
-      </MagicCard>
+      </SpotlightCard>
     </motion.div>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * MagicUI BlurFade — fade-in with blur effect, triggers on mount.
+ * FadeIn — fade-in with blur effect, triggers on mount.
  * Animation 2: blur+opacity+y entry
  */
 import { type ReactNode } from "react";
@@ -15,7 +15,7 @@ interface Props {
   blur?: string;
 }
 
-export function BlurFade({
+export function FadeIn({
   children,
   className,
   delay = 0,

@@ -8,7 +8,7 @@ interface Props {
   fill?: boolean;
 }
 
-export function Sparkline({ data, width = 80, height = 32, color = "#6366f1", fill = true }: Props) {
+export function MiniChart({ data, width = 80, height = 32, color = "#6366f1", fill = true }: Props) {
   if (!data.length) return null;
   const min = Math.min(...data);
   const max = Math.max(...data);

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkline } from "./Sparkline";
+import { MiniChart } from "./MiniChart";
 import type { Diff, Endpoint, Snapshot } from "../types";
 
 interface Props {
@@ -88,10 +88,10 @@ export function EndpointCard({ endpoint, diffs, snapshots }: Props) {
           </div>
         )}
 
-        {/* Sparkline */}
+        {/* MiniChart */}
         {rts.length > 2 && (
           <div>
-            <Sparkline
+            <MiniChart
               data={rts}
               width={160}
               height={28}

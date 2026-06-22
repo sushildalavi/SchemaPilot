@@ -1,5 +1,5 @@
 /**
- * MagicUI RetroGrid — animated perspective grid background.
+ * GridBackdrop — animated perspective grid background.
  * Animation 3: infinite grid-scroll upward
  */
 import { cn } from "../lib/utils";
@@ -9,7 +9,7 @@ interface Props {
   angle?: number;
 }
 
-export function RetroGrid({ className, angle = 65 }: Props) {
+export function GridBackdrop({ className, angle = 65 }: Props) {
   return (
     <div
       className={cn(
