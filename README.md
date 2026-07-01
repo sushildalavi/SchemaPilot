@@ -7,6 +7,7 @@ This repository currently contains three runtime services:
 - `backend/`: scheduled API monitor and changelog service
 - `gateway/`: Node.js/TypeScript webhook gateway with HMAC and idempotency checks
 - root `app/`: runtime contract guard, webhook outbox, and drift event pipeline
+- `frontend/`: Angular dashboard for registry, drift review, DLQ, and document-store browsing
 
 It has two paths:
 
@@ -43,7 +44,7 @@ flowchart LR
 
   DB[(PostgreSQL)]
   DOC[(MongoDB / Cosmos docs)]
-  FE[React dashboard]
+  FE[Angular dashboard]
 
   A --> M1
   B --> M1
@@ -82,5 +83,5 @@ The code is structured for Azure-ready deployment, but cloud resources are optio
 
 - Architecture and evaluation: [docs/PORTFOLIO_PROOF.md](/Users/sushildalavi/Desktop/Github/driftgate/docs/PORTFOLIO_PROOF.md)
 - Demo and local mode: use the Docker Compose command above
-- Test commands: `pytest`, `npm run build`, `docker compose config`, `cd gateway && npm test`
+- Test commands: `pytest`, `npm run build`, `docker compose config`, `cd gateway && npm test`, `cd frontend && npm test -- --watch=false --browsers=ChromeHeadless`
 - Evidence: benchmark and regression docs under `docs/`

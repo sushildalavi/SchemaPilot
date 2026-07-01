@@ -44,7 +44,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://schemapilot:test@localhost:5432/driftgate_test
           DATABASE_URL_SYNC: postgresql://schemapilot:test@localhost:5432/driftgate_test
           ADMIN_SECRET: ci-secret
-          FRONTEND_ORIGINS: http://localhost:5173
+          FRONTEND_ORIGINS: http://localhost:5174
           REGISTRY_PATH: /tmp/apis.yaml
         run: alembic upgrade head
 
@@ -53,7 +53,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://schemapilot:test@localhost:5432/driftgate_test
           DATABASE_URL_SYNC: postgresql://schemapilot:test@localhost:5432/driftgate_test
           ADMIN_SECRET: ci-secret
-          FRONTEND_ORIGINS: http://localhost:5173
+          FRONTEND_ORIGINS: http://localhost:5174
           REGISTRY_PATH: /tmp/apis.yaml
         run: pytest -v
 
@@ -99,10 +99,11 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Test
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
       - name: Build
         run: npm run build
-        env:
-          VITE_API_BASE_URL: https://placeholder.example.com
 
   docker-build:
     runs-on: ubuntu-latest
@@ -116,7 +117,7 @@ jobs:
         run: docker build -t driftgate-gateway ./gateway
 
       - name: Build frontend image
-        run: docker build --build-arg VITE_API_BASE_URL=https://placeholder.example.com -t driftgate-frontend ./frontend
+        run: docker build -t driftgate-frontend ./frontend
 
       - name: Build drift-simulator image
         run: docker build -t driftgate-simulator ./simulator

@@ -66,11 +66,8 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_API_BASE_URL: http://localhost:8080
-        VITE_ADMIN_SECRET: ${ADMIN_SECRET:-dev-secret}
     ports:
-      - "5174:5173"
+      - "5174:80"
     depends_on:
       - backend
 
@@ -99,6 +96,7 @@ services:
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-15}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5174}
       DOCUMENT_STORE_BACKEND: mongo
       DOCUMENT_STORE_URI: mongodb://mongo:27017
       DOCUMENT_STORE_DATABASE: driftgate_documents

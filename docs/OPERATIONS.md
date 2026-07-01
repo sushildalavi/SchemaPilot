@@ -25,7 +25,7 @@ python scripts/apply_runtime_migrations.py
 - Runtime track: `POST http://localhost:8018/track`
 - Runtime metrics: `GET http://localhost:8018/api/v1/metrics`
 - Scheduled backend docs: `http://localhost:8080/docs`
-- Frontend dashboard: `http://localhost:5174`
+- Angular dashboard: `http://localhost:5174`
 
 ## Common Pitfall
 

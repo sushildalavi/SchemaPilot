@@ -6,7 +6,7 @@ DriftGate monitors API drift, infers schema changes, and surfaces runtime guard 
 
 ## Why it is technically impressive
 
-- It combines scheduled monitoring, runtime guardrails, and a React dashboard.
+- It combines scheduled monitoring, runtime guardrails, and an Angular dashboard.
 - The repo includes simulation and benchmark material.
 - The work is directly relevant to platform and API reliability roles.
 
