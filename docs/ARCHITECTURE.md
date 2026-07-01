@@ -4,6 +4,7 @@ SchemaPilot has two backend paths:
 
 1. Scheduled monitor (`backend/`): fetches configured APIs, infers schema, computes deterministic hash, stores snapshots/diffs.
 2. Runtime guard (`app/`): accepts `POST /track` payloads, computes structural fingerprints, classifies drift, stores runtime violations.
+3. Event backend abstraction: publishes drift events to Kafka or Azure Service Bus when configured, with a no-op local fallback.
 
 ## Runtime Guard Data Path
 
@@ -15,6 +16,7 @@ SchemaPilot has two backend paths:
    - `UNIQUE(endpoint_id, fingerprint)`.
 6. Drift is classified into `SAFE`, `RISKY`, `BREAKING`.
 7. Runtime metrics are exposed at `/api/v1/metrics`.
+8. Drift events are handed off through an environment-selected backend (`EVENT_BACKEND`).
 
 ## Runtime Schema
 

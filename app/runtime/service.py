@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -20,6 +22,7 @@ from app.runtime.metrics import (
 from app.runtime.models import DriftEvent
 from app.runtime.registry import upsert_schema_version
 from app.runtime.subscriptions import select_affected_subscriptions
+from app.runtime.webhook import deliver_with_retry
 
 
 async def _enqueue_webhook_outbox(
@@ -38,8 +41,10 @@ async def _enqueue_webhook_outbox(
         severity=classification,
     )
 
+    inline_delivery = os.getenv("INLINE_WEBHOOK_DELIVERY", "true").lower() == "true"
+
     for sub in affected:
-        await db.execute(
+        outbox_row = await db.execute(
             text(
                 """
                 INSERT INTO webhook_outbox(subscription_id, endpoint_id, payload, status, attempts, max_attempts, next_retry_at)
@@ -52,20 +57,61 @@ async def _enqueue_webhook_outbox(
                     5,
                     NOW()
                 )
+                RETURNING id::text
                 """
             ),
             {
                 "subscription_id": sub["id"],
                 "endpoint_id": endpoint_id,
-                "payload": {
+                    "payload": json.dumps({
+                        "event_id": event_id,
+                        "endpoint_id": endpoint_id,
+                        "classification": classification,
+                        "new_version": new_version,
+                    "diffs": diffs,
+                    }),
+                },
+            )
+        outbox_id = outbox_row.scalar_one()
+
+        if inline_delivery:
+            ok = await deliver_with_retry(
+                db,
+                event_id=event_id,
+                endpoint_id=endpoint_id,
+                subscription=sub,
+                payload={
                     "event_id": event_id,
                     "endpoint_id": endpoint_id,
                     "classification": classification,
                     "new_version": new_version,
                     "diffs": diffs,
                 },
-            },
-        )
+                max_attempts=1,
+                persist_dlq=True,
+            )
+            if ok:
+                await db.execute(
+                    text(
+                        """
+                        UPDATE webhook_outbox
+                        SET status = 'DELIVERED', attempts = attempts + 1, updated_at = NOW()
+                        WHERE id = CAST(:id AS uuid)
+                        """
+                    ),
+                    {"id": outbox_id},
+                )
+            else:
+                await db.execute(
+                    text(
+                        """
+                        UPDATE webhook_outbox
+                        SET status = 'FAILED', attempts = attempts + 1, updated_at = NOW()
+                        WHERE id = CAST(:id AS uuid)
+                        """
+                    ),
+                    {"id": outbox_id},
+                )
 
     pending = await db.execute(text("SELECT COUNT(*) FROM webhook_outbox WHERE status = 'PENDING'"))
     OUTBOX_PENDING_GAUGE.set(float(pending.scalar_one()))

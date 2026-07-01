@@ -5,13 +5,25 @@ interface Props {
   runs: MonitorRun[];
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+interface TooltipPoint {
+  dataKey?: string | number;
+  color?: string;
+  value?: string | number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPoint[];
+  label?: string | number;
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="card px-3 py-2.5 text-xs space-y-1.5 shadow-2xl" style={{ minWidth: 140 }}>
       <p className="label mb-1">{label}</p>
-      {payload.map((p: any) => (
-        <div key={p.dataKey} className="flex items-center justify-between gap-4">
+      {payload.map((p) => (
+        <div key={String(p.dataKey)} className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-1.5" style={{ color: p.color }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: p.color }} />
             {p.dataKey}

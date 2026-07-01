@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { cn } from "../lib/utils";
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
  * Parent must have `position: relative` and `overflow: hidden`.
  */
 export function Starfield({ number = 12, className }: Props) {
-  const meteors = Array.from({ length: number });
+  const meteors = useMemo(() => Array.from({ length: number }), [number]);
   return (
     <>
       {meteors.map((_, i) => (
@@ -26,10 +27,10 @@ export function Starfield({ number = 12, className }: Props) {
           )}
           style={{
             top: "0",
-            left: `${Math.floor(Math.random() * 100)}%`,
-            animationDelay: `${Math.random() * 3}s`,
-            animationDuration: `${Math.floor(Math.random() * 6) + 4}s`,
-            width: `${Math.floor(Math.random() * 80) + 60}px`,
+            left: `${(i * 17 + number * 11) % 100}%`,
+            animationDelay: `${((i * 23 + number * 7) % 30) / 10}s`,
+            animationDuration: `${4 + ((i * 19 + number * 5) % 6)}s`,
+            width: `${60 + ((i * 29 + number * 13) % 80)}px`,
           }}
         />
       ))}

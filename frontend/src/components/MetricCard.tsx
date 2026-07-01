@@ -16,7 +16,7 @@ export function MetricCard({ label, value, sub, trend, color = "var(--text-1)", 
   const ref = useRef<HTMLSpanElement>(null);
   const motionVal = useMotionValue(0);
   const spring = useSpring(motionVal, { damping: 60, stiffness: 100 });
-  const inView = useInView({ current: ref.current as unknown as Element } as React.RefObject<Element>, { once: true });
+  const inView = useInView(ref, { once: true });
 
   useEffect(() => {
     if (inView) motionVal.set(value);

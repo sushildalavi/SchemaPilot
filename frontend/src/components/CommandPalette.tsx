@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -22,40 +22,77 @@ export function CommandPalette({ open, onClose }: Props) {
   });
 
   useEffect(() => {
-    if (open) { setQuery(""); setSelected(0); setTimeout(() => inputRef.current?.focus(), 50); }
+    if (!open) return;
+    const id = window.setTimeout(() => {
+      setQuery("");
+      setSelected(0);
+      inputRef.current?.focus();
+    }, 0);
+    return () => window.clearTimeout(id);
   }, [open]);
 
-  const epResults = endpoints.filter(e =>
-    !query || e.name.toLowerCase().includes(query.toLowerCase()) || e.provider.toLowerCase().includes(query.toLowerCase())
+  const epResults = useMemo(
+    () =>
+      endpoints.filter(
+        (e) =>
+          !query ||
+          e.name.toLowerCase().includes(query.toLowerCase()) ||
+          e.provider.toLowerCase().includes(query.toLowerCase()),
+      ),
+    [endpoints, query],
   );
 
-  const actions = [
-    ...(query === "" || "dashboard".includes(query.toLowerCase()) ? [{ type: "action", icon: "⊞", label: "Go to Dashboard", sub: "", action: () => navigate("/") }] : []),
-    ...(query === "" || "diffs".includes(query.toLowerCase()) ? [{ type: "action", icon: "⊟", label: "Recent Diffs", sub: "", action: () => navigate("/diffs") }] : []),
-    ...epResults.map(ep => ({
-      type: "endpoint",
-      icon: ep.latest_snapshot_hash ? "●" : "○",
-      label: ep.name,
-      sub: ep.provider,
-      action: () => navigate(`/endpoints/${ep.id}`),
-    })),
-  ];
+  const actions = useMemo(
+    () => [
+      ...(query === "" || "dashboard".includes(query.toLowerCase())
+        ? [{ type: "action" as const, icon: "⊞", label: "Go to Dashboard", sub: "", action: () => navigate("/") }]
+        : []),
+      ...(query === "" || "diffs".includes(query.toLowerCase())
+        ? [{ type: "action" as const, icon: "⊟", label: "Recent Diffs", sub: "", action: () => navigate("/diffs") }]
+        : []),
+      ...epResults.map((ep) => ({
+        type: "endpoint" as const,
+        icon: ep.latest_snapshot_hash ? "●" : "○",
+        label: ep.name,
+        sub: ep.provider,
+        action: () => navigate(`/endpoints/${ep.id}`),
+      })),
+    ],
+    [epResults, navigate, query],
+  );
 
-  const go = (i: number) => {
-    if (actions[i]) { actions[i].action(); onClose(); }
-  };
+  const go = useCallback(
+    (i: number) => {
+      if (actions[i]) {
+        actions[i].action();
+        onClose();
+      }
+    },
+    [actions, onClose],
+  );
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!open) return;
-      if (e.key === "ArrowDown") { e.preventDefault(); setSelected(s => Math.min(s + 1, actions.length - 1)); }
-      if (e.key === "ArrowUp")   { e.preventDefault(); setSelected(s => Math.max(s - 1, 0)); }
-      if (e.key === "Enter")     { e.preventDefault(); go(selected); }
-      if (e.key === "Escape")    { onClose(); }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelected((s) => Math.min(s + 1, actions.length - 1));
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelected((s) => Math.max(s - 1, 0));
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        go(selected);
+      }
+      if (e.key === "Escape") {
+        onClose();
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, selected, actions]);
+  }, [actions, go, onClose, open, selected]);
 
   return (
     <AnimatePresence>

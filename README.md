@@ -2,6 +2,11 @@
 
 SchemaPilot tracks JSON API contract drift.
 
+This repository currently contains two backend services:
+
+- `backend/`: scheduled API monitor and changelog service
+- root `app/`: runtime contract guard, webhook outbox, and drift event pipeline
+
 It has two paths:
 
 1. Scheduled drift monitoring for live endpoints.
@@ -14,6 +19,7 @@ It has two paths:
 - Diffs schema changes and classifies severity
 - Persists snapshots and violations
 - Powers a dashboard for triage and history
+- Supports an event-backend abstraction for drift publishing
 
 ## Architecture
 
@@ -54,6 +60,14 @@ curl -X POST http://localhost:8080/api/monitor/run-once \
 ## Runtime guard
 
 The runtime guard exposes a `POST /track` endpoint for live payload samples and a metrics endpoint for counts.
+
+Runtime event delivery is environment driven:
+
+- `EVENT_BACKEND=noop` for local development
+- `EVENT_BACKEND=kafka` when a Kafka producer is injected
+- `EVENT_BACKEND=azure_service_bus` when an Azure Service Bus sender is injected
+
+The code is structured for Azure-ready deployment, but cloud resources are optional and not required for local runs.
 
 ## Portfolio Proof
 

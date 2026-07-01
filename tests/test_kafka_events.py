@@ -4,7 +4,8 @@ import json
 
 import pytest
 
-from app.runtime.events import KafkaEventPublisher, publish_with_retry
+from app.runtime.event_backends import KafkaEventBackend, NoopEventBackend, build_event_backend
+from app.runtime.events import publish_with_retry
 from app.runtime.models import DriftEvent
 
 
@@ -23,7 +24,7 @@ class FakeProducer:
 @pytest.mark.asyncio
 async def test_payload_shape():
     producer = FakeProducer()
-    pub = KafkaEventPublisher(producer)
+    pub = KafkaEventBackend(producer)
     event = DriftEvent(
         event_id="e1",
         endpoint_id="ep",
@@ -50,7 +51,7 @@ async def test_payload_shape():
 @pytest.mark.asyncio
 async def test_retry_on_failure_then_success():
     producer = FakeProducer(fail_times=2)
-    pub = KafkaEventPublisher(producer)
+    pub = KafkaEventBackend(producer)
     event = DriftEvent("e1", "ep", "name", "ns", "old", "new", 1, 2, "BREAKING", "BREAKING", "ts", [], 1)
     await publish_with_retry(pub, event, retries=3)
     assert len(producer.calls) == 3
@@ -59,7 +60,20 @@ async def test_retry_on_failure_then_success():
 @pytest.mark.asyncio
 async def test_exhausted_retries_raises():
     producer = FakeProducer(fail_times=5)
-    pub = KafkaEventPublisher(producer)
+    pub = KafkaEventBackend(producer)
     event = DriftEvent("e1", "ep", "name", "ns", "old", "new", 1, 2, "BREAKING", "BREAKING", "ts", [], 1)
     with pytest.raises(RuntimeError):
         await publish_with_retry(pub, event, retries=3)
+
+
+def test_factory_defaults_to_noop(monkeypatch):
+    monkeypatch.delenv("EVENT_BACKEND", raising=False)
+    backend = build_event_backend()
+    assert isinstance(backend, NoopEventBackend)
+
+
+def test_factory_selects_kafka_with_injected_producer(monkeypatch):
+    monkeypatch.setenv("EVENT_BACKEND", "kafka")
+    producer = FakeProducer()
+    backend = build_event_backend(kafka_producer=producer)
+    assert isinstance(backend, KafkaEventBackend)
