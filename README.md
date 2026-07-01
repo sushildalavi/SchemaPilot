@@ -77,11 +77,20 @@ Runtime event delivery is environment driven:
 - `DOCUMENT_STORE_BACKEND=memory` for tests and minimal local mode
 - `DOCUMENT_STORE_BACKEND=mongo` with `DOCUMENT_STORE_URI=mongodb://mongo:27017` for local MongoDB or Cosmos-compatible deployments
 
-The code is structured for Azure-ready deployment, but cloud resources are optional and not required for local runs.
+The code is structured for Azure-ready deployment, but cloud resources are optional and not required for local runs. See [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) for what "Azure-ready" does and doesn't mean here.
+
+## Documentation
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system design and data paths
+- [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) — running each service locally
+- [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) — Azure-ready event backend and Cosmos-compatible document store notes (not deployed)
+- [docs/FAILURE_MODES.md](docs/FAILURE_MODES.md) — how each component behaves on failure
+- [docs/BENCHMARKS.md](docs/BENCHMARKS.md) — measured k6 load test results
+- [DEPLOY.md](DEPLOY.md) — free-tier deploy guide (Neon + Cloud Run + Vercel)
 
 ## Portfolio Proof
 
-- Architecture and evaluation: [docs/PORTFOLIO_PROOF.md](/Users/sushildalavi/Desktop/Github/driftgate/docs/PORTFOLIO_PROOF.md)
+- Architecture and evaluation: [docs/PORTFOLIO_PROOF.md](docs/PORTFOLIO_PROOF.md)
 - Demo and local mode: use the Docker Compose command above
 - Test commands: `pytest`, `npm run build`, `docker compose config`, `cd gateway && npm test`, `cd frontend && npm test -- --watch=false --browsers=ChromeHeadless`
 - Evidence: benchmark and regression docs under `docs/`
